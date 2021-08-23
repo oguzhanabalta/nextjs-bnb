@@ -3,6 +3,12 @@ import { connectToDatabase } from '../lib/mongodb'
 
 export default function Home({ properties }) {
 console.log(properties);
+const book = async (property)=> {
+  const data = await fetch(`http://localhost:3000/api/book?property_id${property._id}&guest=Ado`)
+  const res= await data.json();
+  console.log(res);
+}
+
   return (
     <div>
     <div>
@@ -33,7 +39,8 @@ console.log(properties);
             <span class="text-green-500">${property.price}</span>/night
           </div>
           <div class="text-center py-2 my-2">
-            <button class="bg-blue-500 hover:bg=blue-700 text-white font-bold py-2 px-4 mr-5 rounded">BOOK</button>
+            <button class="bg-blue-500 hover:bg=blue-700 text-white font-bold py-2 px-4 mr-5 rounded" 
+            onClick={()=>book(property)}>BOOK</button>
           </div>
           
     </div>
