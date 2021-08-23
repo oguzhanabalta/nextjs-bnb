@@ -1,47 +1,49 @@
-import MongoClient, { MongoClient } from "mongodb/lib/mongo_client";
-import { async } from "regenerator-runtime";
+import { MongoClient } from 'mongodb'
 
-const {MONGO_URI, MONGO_DB}= precess.env
+const MONGODB_URI = process.env.MONGODB_URI
+const MONGODB_DB = process.env.MONGODB_DB
 
-
-if(!MONGO_URI){
-    throw new Error(
-        'Plese define the MONGO_URI env variable inside env.local'
-    )
+if (!MONGODB_URI) {
+  throw new Error(
+    'Please define the MONGODB_URI environment variable inside .env.local'
+  )
 }
 
-if(!MONGO_DB){
-    throw new Error(
-        'Please define the MONGO_DB env variable inside env.local'
-    )
+if (!MONGODB_DB) {
+  throw new Error(
+    'Please define the MONGODB_DB environment variable inside .env.local'
+  )
 }
 
-let cached= global.mongo
+/**
+ * Global is used here to maintain a cached connection across hot reloads
+ * in development. This prevents connections growing exponentially
+ * during API Route usage.
+ */
+let cached = global.mongo
 
-if(!cached){
-    cached=global.mongo={conn=null, promise:null}
+if (!cached) {
+  cached = global.mongo = { conn: null, promise: null }
 }
 
-export async function connectToDatabase(){
-    if(cashed.conn){
-        return cashed.conn
+export async function connectToDatabase() {
+  if (cached.conn) {
+    return cached.conn
+  }
+
+  if (!cached.promise) {
+    const opts = {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
     }
 
-    if(!cashed.promise){
-        const apts= {
-            useNewUrlParser:true,
-            useUnifiedTopology: true,
-        }
-        cashed.promise = MongoClient.connect(MONGO_URI, opts).then((client) =>  {
-            return {
-                client,
-                db: client.db(MONGO_DB),
-            }
-        })
-    }
-    
-    cashed.conn= await cashed.promise
-    return cashed.conn
+    cached.promise = MongoClient.connect(MONGODB_URI, opts).then((client) => {
+      return {
+        client,
+        db: client.db(MONGODB_DB),
+      }
+    })
+  }
+  cached.conn = await cached.promise
+  return cached.conn
 }
-
-
